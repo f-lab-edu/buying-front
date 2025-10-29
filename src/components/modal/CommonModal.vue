@@ -9,7 +9,7 @@
         <h3 class="modal-title">{{ title }}</h3>
         <p class="modal-message">{{ message }}</p>
       </div>
-      <div class="modal-actions">
+      <div v-if="showActions" class="modal-actions">
         <button class="primary" @click="handleClose">확인</button>
       </div>
     </div>
@@ -24,6 +24,7 @@ export default {
     title: { type: String, default: "" },
     message: { type: String, default: "" },
     autoCloseMs: { type: Number, default: 2000 },
+    showActions: { type: Boolean, default: true },
   },
   emits: ["update:modelValue", "close"],
   data() {

@@ -90,6 +90,16 @@
         </div>
       </div>
     </div>
+
+    <ConfirmModal
+      v-model="loginSuccessOpen"
+      title="로그인 성공!"
+      :showActions="false"
+      :showClose="false"
+      :autoCloseMs="1500"
+      :allowBackdropClose="false"
+      @close="redirectHome"
+    />
   </div>
 </template>
 
@@ -97,9 +107,11 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import api from "../utils/api";
+import ConfirmModal from "@/components/modal/ConfirmModal.vue";
 
 export default {
   name: "LoginPage",
+  components: { ConfirmModal },
   setup() {
     const router = useRouter();
     const isSignUp = ref(false);
@@ -114,6 +126,9 @@ export default {
       password: "",
       nickname: "",
     });
+
+    const loginSuccessOpen = ref(false);
+    const redirectHome = () => router.push("/");
 
     const toggleSignUp = () => {
       isSignUp.value = !isSignUp.value;
@@ -146,8 +161,8 @@ export default {
           localStorage.setItem("memberId", response.data.memberId.toString());
           localStorage.setItem("user", JSON.stringify(response.data));
 
-          alert("로그인 성공!");
-          router.push("/users/profile");
+          // 성공 모달 (버튼 없음) → 1.5초 뒤 홈으로 이동
+          loginSuccessOpen.value = true;
         }
       } catch (error) {
         console.error("로그인 오류:", error);
@@ -223,6 +238,8 @@ export default {
       isSignUp,
       loginForm,
       signupForm,
+      loginSuccessOpen,
+      redirectHome,
       toggleSignUp,
       handleLogin,
       handleSignUp,
