@@ -48,14 +48,21 @@ export default {
         console.log("백엔드 응답:", response);
         console.log("응답 데이터:", response.data);
 
-        if (response.data) {
+        // 백엔드 응답 구조: {message, code, data: {accessToken, memberId}}
+        const responseData = response.data?.data || response.data;
+
+        if (responseData && responseData.accessToken) {
           // JWT 토큰 저장
-          localStorage.setItem("accessToken", response.data.accessToken);
-          localStorage.setItem("memberId", response.data.memberId.toString());
-          localStorage.setItem("user", JSON.stringify(response.data));
+          localStorage.setItem("accessToken", responseData.accessToken);
+          if (responseData.memberId) {
+            localStorage.setItem("memberId", responseData.memberId.toString());
+          }
+          localStorage.setItem("user", JSON.stringify(responseData));
 
           statusMessage.value = "로그인 성공!";
           loginSuccessOpen.value = true;
+        } else {
+          throw new Error("로그인 응답 데이터가 올바르지 않습니다.");
         }
       } catch (error) {
         console.error("구글 로그인 오류:", error);

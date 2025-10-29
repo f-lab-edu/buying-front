@@ -156,14 +156,21 @@ export default {
 
         console.log("로그인 응답:", response.data); // 디버깅용
 
-        if (response.data) {
-          // JWT 토큰 저장 - 백엔드 응답 형식에 맞게 수정
-          localStorage.setItem("accessToken", response.data.accessToken);
-          localStorage.setItem("memberId", response.data.memberId.toString());
-          localStorage.setItem("user", JSON.stringify(response.data));
+        // 백엔드 응답 구조: {message, code, data: {accessToken, memberId}}
+        const responseData = response.data?.data || response.data;
+
+        if (responseData && responseData.accessToken) {
+          // JWT 토큰 저장
+          localStorage.setItem("accessToken", responseData.accessToken);
+          if (responseData.memberId) {
+            localStorage.setItem("memberId", responseData.memberId.toString());
+          }
+          localStorage.setItem("user", JSON.stringify(responseData));
 
           // 성공 모달 (버튼 없음) → 1.5초 뒤 홈으로 이동
           loginSuccessOpen.value = true;
+        } else {
+          throw new Error("로그인 응답 데이터가 올바르지 않습니다.");
         }
       } catch (error) {
         console.error("로그인 오류:", error);
