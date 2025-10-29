@@ -147,7 +147,7 @@ export default {
           localStorage.setItem("user", JSON.stringify(response.data));
 
           alert("로그인 성공!");
-          router.push("/");
+          router.push("/users/profile");
         }
       } catch (error) {
         console.error("로그인 오류:", error);
