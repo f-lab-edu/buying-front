@@ -9,16 +9,16 @@
 </template>
 
 <script>
-import Header from './Header.vue'
-import BottomNav from './BottomNav.vue'
+import Header from "./Header.vue";
+import BottomNav from "./BottomNav.vue";
 
 export default {
-  name: 'MainLayout',
+  name: "AppMainLayout",
   components: {
     Header,
-    BottomNav
-  }
-}
+    BottomNav,
+  },
+};
 </script>
 
 <style scoped>
@@ -47,7 +47,7 @@ export default {
     border-radius: 0;
     box-shadow: none;
   }
-  
+
   .content-box {
     padding: 0px;
   }

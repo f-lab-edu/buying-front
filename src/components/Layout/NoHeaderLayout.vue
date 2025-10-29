@@ -8,14 +8,14 @@
 </template>
 
 <script>
-import BottomNav from './BottomNav.vue'
+import BottomNav from "./BottomNav.vue";
 
 export default {
-  name: 'NoHeaderLayout',
+  name: "AppNoHeaderLayout",
   components: {
-    BottomNav
-  }
-}
+    BottomNav,
+  },
+};
 </script>
 
 <style scoped>
@@ -43,7 +43,7 @@ export default {
     border-radius: 0;
     box-shadow: none;
   }
-  
+
   .content-box {
     padding: 0px;
   }

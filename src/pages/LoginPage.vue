@@ -2,29 +2,7 @@
   <div class="login-container">
     <!-- 로고 섹션 -->
     <div class="logo-section">
-      <div class="logo-circle">
-        <div class="cat-container">
-          <div class="cat-body"></div>
-          <div class="cat-head">
-            <div class="cat-ears">
-              <div class="ear left"></div>
-              <div class="ear right"></div>
-            </div>
-            <div class="cat-glasses"></div>
-            <div class="cat-eyes">
-              <div class="eye left"></div>
-              <div class="eye right"></div>
-            </div>
-            <div class="cat-nose"></div>
-            <div class="cat-mouth"></div>
-          </div>
-          <div class="shopping-bag">
-            <div class="bag-body"></div>
-            <div class="bag-handle left"></div>
-            <div class="bag-handle right"></div>
-          </div>
-        </div>
-      </div>
+      <img src="@/assets/logo.png" alt="Buying Logo" class="logo-img" />
       <h1 class="brand-title">Buying</h1>
     </div>
 
@@ -32,45 +10,227 @@
     <div class="form-section">
       <div class="input-group">
         <label class="input-label">EMAIL</label>
+        <input
+          type="email"
+          v-model="loginForm.email"
+          class="input-field"
+          placeholder="이메일을 입력하세요"
+        />
         <div class="input-underline"></div>
       </div>
-      
+
       <div class="input-group">
         <label class="input-label">PASSWORD</label>
+        <input
+          type="password"
+          v-model="loginForm.password"
+          class="input-field"
+          placeholder="비밀번호를 입력하세요"
+        />
         <div class="input-underline"></div>
       </div>
 
       <div class="button-group">
-        <button class="login-btn">Log in</button>
-        <button class="google-btn">
+        <button class="login-btn" @click="handleLogin">Log in</button>
+        <button class="google-btn" @click="handleGoogleLogin">
           <span class="google-text">Connect with</span>
           <span class="google-brand">Google</span>
         </button>
+      </div>
+
+      <!-- 회원가입 링크 -->
+      <div class="signup-link-section">
+        <p>계정이 없으신가요?</p>
+        <button class="signup-toggle-btn" @click="toggleSignUp">
+          {{ isSignUp ? "로그인하기" : "회원가입하기" }}
+        </button>
+      </div>
+
+      <!-- 회원가입 폼 (토글) -->
+      <div v-if="isSignUp" class="signup-form">
+        <div class="input-group">
+          <label class="input-label">NICKNAME</label>
+          <input
+            type="text"
+            v-model="signupForm.nickname"
+            class="input-field"
+            placeholder="닉네임을 입력하세요"
+          />
+          <div class="input-underline"></div>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">EMAIL</label>
+          <input
+            type="email"
+            v-model="signupForm.email"
+            class="input-field"
+            placeholder="이메일을 입력하세요"
+          />
+          <div class="input-underline"></div>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">PASSWORD</label>
+          <input
+            type="password"
+            v-model="signupForm.password"
+            class="input-field"
+            placeholder="비밀번호를 입력하세요"
+          />
+          <div class="input-underline"></div>
+        </div>
+
+        <div class="button-group">
+          <button class="login-btn" @click="handleSignUp">Sign Up</button>
+          <button class="google-btn" @click="handleGoogleSignUp">
+            <span class="google-text">Join with</span>
+            <span class="google-brand">Google</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+import api from "../utils/api";
+
 export default {
-  name: 'LoginPage',
-  data() {
+  name: "LoginPage",
+  setup() {
+    const router = useRouter();
+    const isSignUp = ref(false);
+
+    const loginForm = ref({
+      email: "",
+      password: "",
+    });
+
+    const signupForm = ref({
+      email: "",
+      password: "",
+      nickname: "",
+    });
+
+    const toggleSignUp = () => {
+      isSignUp.value = !isSignUp.value;
+    };
+
+    const handleLogin = async () => {
+      try {
+        if (!loginForm.value.email || !loginForm.value.password) {
+          alert("이메일과 비밀번호를 입력해주세요.");
+          return;
+        }
+
+        console.log("로그인 시도:", loginForm.value); // 디버깅용
+        console.log("요청 URL:", "/api/member/login");
+        console.log("요청 데이터:", {
+          email: loginForm.value.email,
+          password: loginForm.value.password,
+        });
+
+        const response = await api.post("/member/login", {
+          email: loginForm.value.email,
+          password: loginForm.value.password,
+        });
+
+        console.log("로그인 응답:", response.data); // 디버깅용
+
+        if (response.data) {
+          // JWT 토큰 저장 - 백엔드 응답 형식에 맞게 수정
+          localStorage.setItem("accessToken", response.data.accessToken);
+          localStorage.setItem("memberId", response.data.memberId.toString());
+          localStorage.setItem("user", JSON.stringify(response.data));
+
+          alert("로그인 성공!");
+          router.push("/");
+        }
+      } catch (error) {
+        console.error("로그인 오류:", error);
+        console.error("에러 타입:", typeof error);
+        console.error("에러 메시지:", error.message);
+        console.error("에러 코드:", error.code);
+        console.error("에러 응답:", error.response);
+        console.error("에러 요청:", error.request);
+        console.error("에러 응답:", error.response?.data); // 디버깅용
+
+        if (error.response?.status === 401) {
+          alert("이메일 또는 비밀번호가 올바르지 않습니다.");
+        } else if (error.response?.status === 404) {
+          alert("존재하지 않는 사용자입니다.");
+        } else if (
+          error.code === "ECONNREFUSED" ||
+          error.code === "ERR_NETWORK"
+        ) {
+          alert(
+            "백엔드 서버에 연결할 수 없습니다. 서버가 실행 중인지 확인해주세요."
+          );
+        } else {
+          alert(
+            `로그인 중 오류가 발생했습니다: ${
+              error.response?.data?.message || error.message
+            }`
+          );
+        }
+      }
+    };
+
+    const handleSignUp = async () => {
+      try {
+        if (
+          !signupForm.value.email ||
+          !signupForm.value.password ||
+          !signupForm.value.nickname
+        ) {
+          alert("모든 필드를 입력해주세요.");
+          return;
+        }
+
+        const response = await api.post("/member/create", {
+          email: signupForm.value.email,
+          password: signupForm.value.password,
+          nickname: signupForm.value.nickname,
+        });
+
+        if (response.data) {
+          alert("회원가입 성공! 로그인해주세요.");
+          isSignUp.value = false;
+          signupForm.value = { email: "", password: "", nickname: "" };
+        }
+      } catch (error) {
+        console.error("회원가입 오류:", error);
+        if (error.response?.status === 409) {
+          alert("이미 존재하는 이메일입니다.");
+        } else {
+          alert("회원가입 중 오류가 발생했습니다.");
+        }
+      }
+    };
+
+    const handleGoogleLogin = () => {
+      alert("구글 로그인 기능은 추후 구현 예정입니다.");
+    };
+
+    const handleGoogleSignUp = () => {
+      alert("구글 회원가입 기능은 추후 구현 예정입니다.");
+    };
+
     return {
-      email: '',
-      password: ''
-    }
+      isSignUp,
+      loginForm,
+      signupForm,
+      toggleSignUp,
+      handleLogin,
+      handleSignUp,
+      handleGoogleLogin,
+      handleGoogleSignUp,
+    };
   },
-  methods: {
-    handleLogin() {
-      // 로그인 로직 구현 예정
-      console.log('로그인 시도:', { email: this.email, password: this.password })
-    },
-    handleGoogleLogin() {
-      // 구글 로그인 로직 구현 예정
-      console.log('구글 로그인 시도')
-    }
-  }
-}
+};
 </script>
 
 <style scoped>
@@ -92,189 +252,15 @@ export default {
   margin-bottom: 60px;
 }
 
-.logo-circle {
+.logo-img {
   width: 120px;
   height: 120px;
-  background-color: #FFE4B5;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  object-fit: contain;
   margin-bottom: 20px;
-  position: relative;
-}
-
-.cat-container {
-  position: relative;
-  width: 80px;
-  height: 80px;
-}
-
-.cat-body {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60px;
-  height: 40px;
-  background-color: white;
-  border-radius: 30px 30px 0 0;
-  border: 2px solid #333;
-}
-
-.cat-head {
-  position: absolute;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 50px;
-  height: 45px;
-}
-
-.cat-ears {
-  position: relative;
-  width: 100%;
-  height: 20px;
-}
-
-.ear {
-  position: absolute;
-  top: 0;
-  width: 15px;
-  height: 20px;
-  background-color: white;
-  border: 2px solid #333;
-  border-radius: 50% 50% 0 0;
-}
-
-.ear.left {
-  left: 5px;
-}
-
-.ear.right {
-  right: 5px;
-}
-
-.ear::after {
-  content: '';
-  position: absolute;
-  top: 3px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 8px;
-  height: 8px;
-  background-color: #FFB6C1;
-  border-radius: 50%;
-}
-
-.cat-glasses {
-  position: absolute;
-  top: 15px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 35px;
-  height: 20px;
-  border: 2px solid #333;
-  border-radius: 50%;
-}
-
-.cat-eyes {
-  position: absolute;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 35px;
-  height: 8px;
-}
-
-.eye {
-  position: absolute;
-  top: 0;
-  width: 4px;
-  height: 4px;
-  background-color: #333;
-  border-radius: 50%;
-}
-
-.eye.left {
-  left: 8px;
-}
-
-.eye.right {
-  right: 8px;
-}
-
-.cat-nose {
-  position: absolute;
-  top: 28px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 4px;
-  height: 3px;
-  background-color: #333;
-  border-radius: 50%;
-}
-
-.cat-mouth {
-  position: absolute;
-  top: 32px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 8px;
-  height: 2px;
-  border-bottom: 1px solid #333;
-  border-radius: 0 0 50% 50%;
-}
-
-.shopping-bag {
-  position: absolute;
-  bottom: 15px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 25px;
-  height: 30px;
-}
-
-.bag-body {
-  width: 100%;
-  height: 100%;
-  background-color: #FF8C00;
-  border: 2px solid #333;
-  border-radius: 4px;
-  position: relative;
-}
-
-.bag-body::after {
-  content: '';
-  position: absolute;
-  right: 2px;
-  top: 2px;
-  width: 8px;
-  height: 26px;
-  background-color: #FF7F00;
-  border-radius: 2px;
-}
-
-.bag-handle {
-  position: absolute;
-  top: -4px;
-  width: 8px;
-  height: 6px;
-  border: 2px solid #333;
-  border-bottom: none;
-  border-radius: 4px 4px 0 0;
-}
-
-.bag-handle.left {
-  left: 2px;
-}
-
-.bag-handle.right {
-  right: 2px;
 }
 
 .brand-title {
-  font-family: 'Brush Script MT', cursive;
+  font-family: "Brush Script MT", cursive;
   font-size: 2.5rem;
   font-weight: normal;
   color: #333;
@@ -291,6 +277,7 @@ export default {
 .input-group {
   margin-bottom: 40px;
   text-align: center;
+  position: relative;
 }
 
 .input-label {
@@ -300,6 +287,21 @@ export default {
   margin-bottom: 8px;
   font-weight: 500;
   letter-spacing: 0.5px;
+}
+
+.input-field {
+  width: 100%;
+  padding: 8px 0;
+  font-size: 1rem;
+  border: none;
+  background: transparent;
+  text-align: center;
+  outline: none;
+}
+
+.input-field::placeholder {
+  color: #ccc;
+  font-size: 0.9rem;
 }
 
 .input-underline {
@@ -313,6 +315,7 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  margin-bottom: 30px;
 }
 
 .login-btn,
@@ -360,26 +363,52 @@ export default {
   color: #666;
 }
 
+/* 회원가입 섹션 */
+.signup-link-section {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.signup-link-section p {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+}
+
+.signup-toggle-btn {
+  background: none;
+  border: none;
+  color: #007bff;
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.signup-toggle-btn:hover {
+  color: #0056b3;
+}
+
+.signup-form {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
 /* 반응형 디자인 */
 @media (max-width: 480px) {
   .login-container {
     padding: 20px 16px;
   }
-  
-  .logo-circle {
+
+  .logo-img {
     width: 100px;
     height: 100px;
   }
-  
-  .cat-container {
-    width: 70px;
-    height: 70px;
-  }
-  
+
   .brand-title {
     font-size: 2rem;
   }
-  
+
   .form-section {
     max-width: 280px;
   }

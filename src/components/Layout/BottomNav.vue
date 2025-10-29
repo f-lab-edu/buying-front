@@ -9,7 +9,9 @@
         @click="handleNavClick(item.value)"
       >
         <div class="nav-icon">
-          <component :is="currentValue === item.value ? item.selectedIcon : item.icon" />
+          <component
+            :is="currentValue === item.value ? item.selectedIcon : item.icon"
+          />
         </div>
         <span class="nav-label">{{ item.label }}</span>
       </button>
@@ -18,8 +20,8 @@
 </template>
 
 <script>
-import { ref, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { ref, watch } from "vue";
+import { useRouter, useRoute } from "vue-router";
 
 // 아이콘 컴포넌트들
 const HomeIcon = {
@@ -27,8 +29,8 @@ const HomeIcon = {
     <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
       <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
     </svg>
-  `
-}
+  `,
+};
 
 const HomeOutlinedIcon = {
   template: `
@@ -36,8 +38,8 @@ const HomeOutlinedIcon = {
       <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
       <polyline points="9,22 9,12 15,12 15,22"/>
     </svg>
-  `
-}
+  `,
+};
 
 const SearchIcon = {
   template: `
@@ -45,8 +47,8 @@ const SearchIcon = {
       <circle cx="11" cy="11" r="8"/>
       <path d="M21 21l-4.35-4.35"/>
     </svg>
-  `
-}
+  `,
+};
 
 const SearchOutlinedIcon = {
   template: `
@@ -54,24 +56,24 @@ const SearchOutlinedIcon = {
       <circle cx="11" cy="11" r="8"/>
       <path d="M21 21l-4.35-4.35"/>
     </svg>
-  `
-}
+  `,
+};
 
 const BookmarkIcon = {
   template: `
     <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
       <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
     </svg>
-  `
-}
+  `,
+};
 
 const BookmarkBorderIcon = {
   template: `
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
       <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
     </svg>
-  `
-}
+  `,
+};
 
 const PersonIcon = {
   template: `
@@ -79,8 +81,8 @@ const PersonIcon = {
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
       <circle cx="12" cy="7" r="4"/>
     </svg>
-  `
-}
+  `,
+};
 
 const PersonOutlineIcon = {
   template: `
@@ -88,11 +90,11 @@ const PersonOutlineIcon = {
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
       <circle cx="12" cy="7" r="4"/>
     </svg>
-  `
-}
+  `,
+};
 
 export default {
-  name: 'BottomNav',
+  name: "AppBottomNav",
   components: {
     HomeIcon,
     HomeOutlinedIcon,
@@ -101,67 +103,92 @@ export default {
     BookmarkIcon,
     BookmarkBorderIcon,
     PersonIcon,
-    PersonOutlineIcon
+    PersonOutlineIcon,
   },
   setup() {
-    const router = useRouter()
-    const route = useRoute()
-    const currentValue = ref(route.path)
+    const router = useRouter();
+    const route = useRoute();
+    const currentValue = ref(route.path);
 
     const navItems = [
       {
-        label: '홈',
-        value: '/',
+        label: "홈",
+        value: "/",
         icon: HomeOutlinedIcon,
-        selectedIcon: HomeIcon
+        selectedIcon: HomeIcon,
       },
       {
-        label: '검색',
-        value: '/search',
+        label: "검색",
+        value: "/search",
         icon: SearchOutlinedIcon,
-        selectedIcon: SearchIcon
+        selectedIcon: SearchIcon,
       },
       {
-        label: '북마크',
-        value: '/bookmarks',
+        label: "즐겨찾기",
+        value: "/favorites",
         icon: BookmarkBorderIcon,
-        selectedIcon: BookmarkIcon
+        selectedIcon: BookmarkIcon,
       },
       {
-        label: 'AI 작가',
-        value: '/ai-authors',
+        label: "프로필",
+        value: "/profile",
         icon: PersonOutlineIcon,
-        selectedIcon: PersonIcon
-      }
-    ]
+        selectedIcon: PersonIcon,
+      },
+    ];
 
     const handleNavClick = (value) => {
-      currentValue.value = value
-      router.push(value)
-    }
+      if (value === "/") {
+        currentValue.value = value;
+        router.push(value);
+      } else if (value === "/favorites") {
+        currentValue.value = value;
+        router.push(value);
+      } else if (value === "/search") {
+        currentValue.value = value;
+        router.push(value);
+      } else if (value === "/profile") {
+        currentValue.value = value;
+        router.push(value);
+      } else {
+        alert("해당 기능은 추후 구현 예정입니다.");
+      }
+    };
 
     // 라우트 변경 감지
-    watch(() => route.path, (newPath) => {
-      if (newPath.startsWith('/bookmarks') || 
-          newPath.startsWith('/keyword-bookmarks') || 
-          newPath.startsWith('/keyword-add') || 
-          newPath.startsWith('/ai-author-bookmarks')) {
-        currentValue.value = '/bookmarks'
-      } else {
-        const currentNavItem = navItems.find(item => 
-          newPath.startsWith(item.value) && item.value !== '/'
-        )
-        currentValue.value = currentNavItem ? currentNavItem.value : (newPath === '/' ? '/' : '')
+    watch(
+      () => route.path,
+      (newPath) => {
+        if (
+          newPath.startsWith("/favorites") ||
+          newPath.startsWith("/bookmarks")
+        ) {
+          currentValue.value = "/favorites";
+        } else if (
+          newPath.startsWith("/profile") ||
+          newPath.startsWith("/users/profile")
+        ) {
+          currentValue.value = "/profile";
+        } else {
+          const currentNavItem = navItems.find(
+            (item) => newPath.startsWith(item.value) && item.value !== "/"
+          );
+          currentValue.value = currentNavItem
+            ? currentNavItem.value
+            : newPath === "/"
+            ? "/"
+            : "";
+        }
       }
-    })
+    );
 
     return {
       navItems,
       currentValue,
-      handleNavClick
-    }
-  }
-}
+      handleNavClick,
+    };
+  },
+};
 </script>
 
 <style scoped>
@@ -237,7 +264,7 @@ export default {
     border-radius: 0;
     box-shadow: none;
   }
-  
+
   .bottom-navigation {
     max-width: 100%;
     padding: 0 24px;
@@ -251,7 +278,7 @@ export default {
     border-radius: 0;
     box-shadow: none;
   }
-  
+
   .bottom-navigation {
     max-width: 100%;
     padding: 0 16px;
