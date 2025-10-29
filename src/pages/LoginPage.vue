@@ -108,6 +108,7 @@ import { ref } from "vue";
 import { useRouter } from "vue-router";
 import api from "../utils/api";
 import ConfirmModal from "@/components/modal/ConfirmModal.vue";
+import { redirectToGoogle } from "@/utils/googleOAuth";
 
 export default {
   name: "LoginPage",
@@ -227,11 +228,11 @@ export default {
     };
 
     const handleGoogleLogin = () => {
-      alert("구글 로그인 기능은 추후 구현 예정입니다.");
+      redirectToGoogle();
     };
 
     const handleGoogleSignUp = () => {
-      alert("구글 회원가입 기능은 추후 구현 예정입니다.");
+      redirectToGoogle();
     };
 
     return {

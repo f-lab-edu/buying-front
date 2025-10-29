@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import LoginPage from '../pages/LoginPage.vue'
 import MainPage from '../pages/MainPage.vue'
 import ProfilePage from '../pages/ProfilePage.vue'
+import GoogleOAuthRedirect from '../pages/GoogleOAuthRedirect.vue'
 import NoHeaderLayout from '../components/Layout/NoHeaderLayout.vue'
 import MainLayout from '../components/Layout/MainLayout.vue'
 
@@ -25,6 +26,13 @@ const routes = [
     component: NoHeaderLayout,
     children: [
       { path: '', name: 'Profile', component: ProfilePage }
+    ]
+  },
+  {
+    path: '/oauth/google/redirect',
+    component: NoHeaderLayout,
+    children: [
+      { path: '', name: 'GoogleOAuthRedirect', component: GoogleOAuthRedirect }
     ]
   },
   {

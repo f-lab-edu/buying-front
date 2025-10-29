@@ -16,7 +16,13 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
-    console.log('API 요청:', config.method.toUpperCase(), config.url, config.data)
+    console.log('=== API 요청 정보 ===')
+    console.log('Method:', config.method.toUpperCase())
+    console.log('URL:', config.baseURL + config.url)
+    console.log('전체 URL:', config.url)
+    console.log('요청 데이터:', config.data)
+    console.log('요청 헤더:', config.headers)
+    console.log('===================')
     return config
   },
   (error) => {
@@ -28,13 +34,27 @@ api.interceptors.request.use(
 // 응답 인터셉터 - 에러 처리
 api.interceptors.response.use(
   (response) => {
-    console.log('API 응답:', response.status, response.config.url, response.data)
+    console.log('=== API 응답 성공 ===')
+    console.log('Status:', response.status)
+    console.log('URL:', response.config.url)
+    console.log('응답 데이터:', response.data)
+    console.log('===================')
     return response
   },
   (error) => {
-    console.error('API 에러:', error.response?.status, error.config?.url, error.response?.data)
-    if (error.response?.status === 401) {
-      // 토큰 만료 시 로그아웃 처리
+    console.error('=== API 에러 발생 ===')
+    console.error('상태 코드:', error.response?.status)
+    console.error('에러 URL:', error.config?.url)
+    console.error('응답 데이터:', error.response?.data)
+    console.error('요청 데이터:', error.config?.data)
+    console.error('에러 메시지:', error.message)
+    if (error.request) {
+      console.error('요청 객체:', error.request)
+    }
+    console.error('===================')
+    
+    if (error.response?.status === 401 && error.config?.url !== '/member/login' && error.config?.url !== '/member/google/login') {
+      // 토큰 만료 시 로그아웃 처리 (로그인/구글 로그인 제외)
       localStorage.removeItem('accessToken')
       localStorage.removeItem('memberId')
       localStorage.removeItem('user')
