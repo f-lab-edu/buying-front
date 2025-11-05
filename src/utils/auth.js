@@ -6,3 +6,9 @@ export const saveToken = (accessToken, memberId) => {
   localStorage.setItem("user", JSON.stringify({ accessToken, memberId }));
 };
 
+export const logout = () => {
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("memberId");
+  localStorage.removeItem("user");
+};
+
