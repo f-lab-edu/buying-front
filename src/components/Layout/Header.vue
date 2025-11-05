@@ -121,15 +121,20 @@ export default {
   width: 100%;
   padding: 0 16px;
   min-height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  flex-direction: row !important;
 }
 
 .logo-link {
-  display: flex;
+  display: flex !important;
   align-items: center;
   text-decoration: none;
+  flex-shrink: 0 !important;
+  order: 0 !important;
+  margin-right: auto !important;
+  margin-left: 0 !important;
 }
 
 .logo-img {
@@ -141,6 +146,9 @@ export default {
   display: flex;
   gap: 12px;
   margin-right: -8px;
+  flex-shrink: 0;
+  order: 2;
+  margin-left: auto;
 }
 
 .icon-button {

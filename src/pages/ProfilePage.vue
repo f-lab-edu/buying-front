@@ -110,6 +110,99 @@ export default {
 };
 </script>
 
-<style>
-@import "@/styles/pages/ProfilePage.css";
+<style scoped>
+.profile-page {
+  min-height: 100vh;
+  padding: 16px 20px 100px;
+  background: #fff;
+}
+
+.top-bar {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0 16px;
+  z-index: 10;
+}
+
+.back-btn {
+  border: none;
+  background: transparent;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.title {
+  font-size: 14px;
+  color: #222;
+}
+
+.right-space {
+  width: 22px;
+}
+
+.avatar-wrap {
+  display: flex;
+  justify-content: center;
+  margin: 28px 0 10px;
+}
+
+.avatar {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.user-name {
+  text-align: center;
+  margin-top: 10px;
+  font-size: 16px;
+  color: #111;
+}
+
+.user-email {
+  text-align: center;
+  margin-top: 6px;
+  font-size: 13px;
+  color: #777;
+}
+
+.btn-group {
+  margin: 28px auto 0;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.btn {
+  height: 44px;
+  border-radius: 10px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.primary {
+  background: #222;
+  color: #fff;
+  border: none;
+}
+
+.outline {
+  background: #fff;
+  color: #222;
+  border: 1px solid #ccc;
+}
+
+.logout-btn:hover {
+  background: #ff2b1a;
+  color: #fff;
+  border-color: #ff2b1a;
+}
 </style>
