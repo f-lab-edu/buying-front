@@ -1,37 +1,16 @@
-// 구글 OAuth 설정
-// 구글 콘솔에서 발급받은 Client ID를 여기에 입력하세요
-// 방법 1: .env 파일에 VUE_APP_GOOGLE_CLIENT_ID 설정
-// 방법 2: 아래 DIRECT_CLIENT_ID에 직접 입력 (환경변수보다 우선)
-const DIRECT_CLIENT_ID = '' // 여기에 구글 Client ID를 직접 입력할 수 있습니다
+// Spring Security OAuth2 방식 사용
+// 프론트엔드에서 직접 구글 로그인 페이지로 가지 않고
+// 백엔드의 Spring Security OAuth2 엔드포인트를 통해 처리
 
-export const GOOGLE_OAUTH_CONFIG = {
-  clientId: DIRECT_CLIENT_ID || process.env.VUE_APP_GOOGLE_CLIENT_ID || '',
-  redirectUri: process.env.VUE_APP_GOOGLE_REDIRECT_URI || 'http://localhost:3000/oauth/google/redirect',
-  scope: 'openid email profile',
-  responseType: 'code',
-  authUrl: 'https://accounts.google.com/o/oauth2/v2/auth'
-}
-
-export const getGoogleAuthUrl = () => {
-  const params = new URLSearchParams({
-    client_id: GOOGLE_OAUTH_CONFIG.clientId,
-    redirect_uri: GOOGLE_OAUTH_CONFIG.redirectUri,
-    response_type: GOOGLE_OAUTH_CONFIG.responseType,
-    scope: GOOGLE_OAUTH_CONFIG.scope,
-    access_type: 'offline',
-    prompt: 'consent'
-  })
-  
-  return `${GOOGLE_OAUTH_CONFIG.authUrl}?${params.toString()}`
-}
+// 백엔드 URL 설정 (환경변수 또는 직접 설정)
+const BACKEND_URL = process.env.VUE_APP_BACKEND_URL || 'http://localhost:8080'
 
 export const redirectToGoogle = () => {
-  if (!GOOGLE_OAUTH_CONFIG.clientId) {
-    console.error('Google Client ID가 설정되지 않았습니다. googleOAuth.js 파일에서 clientId를 설정해주세요.')
-    alert('구글 로그인 설정이 완료되지 않았습니다. 관리자에게 문의해주세요.')
-    return
-  }
-  const url = getGoogleAuthUrl()
-  window.location.href = url
+  // Spring Security OAuth2 엔드포인트로 직접 리다이렉트
+  // 프록시를 거치지 않고 직접 백엔드로 가야 세션 쿠키가 제대로 전달됨
+  // OAuth2 로그인은 반드시 브라우저 직접 리다이렉트로 해야 함 (AJAX 불가)
+  const oauthUrl = `${BACKEND_URL}/oauth2/authorization/google`
+  console.log('OAuth2 로그인 시작:', oauthUrl)
+  window.location.href = oauthUrl
 }
 
