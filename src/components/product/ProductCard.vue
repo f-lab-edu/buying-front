@@ -1,53 +1,139 @@
 <template>
   <div class="product-card">
     <div class="product-image">
-      <img
-        :src="product.imageUrl || '/placeholder-image.png'"
-        :alt="product.title"
-        class="product-img"
-      />
+      <img :src="thumbnail" :alt="product.title" class="product-img" />
     </div>
     <div class="product-info">
       <h3 class="product-title">{{ product.title }}</h3>
-      <div class="product-status">{{ product.status }}</div>
-      <div class="product-price-row">
-        <span class="product-price">{{ formatPrice(product.price) }}원</span>
-        <span class="product-quantity">수량: {{ product.quantity }}개</span>
+      <p v-if="writer" class="product-writer">{{ writer }}</p>
+      <div class="product-meta">
+        <span class="status-badge" v-if="statusLabel">{{ statusLabel }}</span>
+        <span class="product-price">{{ formattedPrice }}</span>
       </div>
     </div>
-    <button class="close-btn" @click="$emit('remove', product.id)">
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-      >
-        <line x1="18" y1="6" x2="6" y2="18"></line>
-        <line x1="6" y1="6" x2="18" y2="18"></line>
-      </svg>
-    </button>
   </div>
 </template>
 
 <script>
-import { formatPrice } from "@/utils/format";
+import { formatPrice } from '@/utils/format'
+
+const PLACEHOLDER_IMAGE = 'https://via.placeholder.com/300x200?text=No+Image'
 
 export default {
-  name: "ProductCard",
+  name: 'ProductCard',
   props: {
     product: {
       type: Object,
       required: true,
     },
   },
-  methods: {
-    formatPrice,
+  computed: {
+    formattedPrice() {
+      const price = Number(this.product.price) || 0
+      return `${formatPrice(price)}원`
+    },
+    thumbnail() {
+      return this.product.thumbnailUrl || PLACEHOLDER_IMAGE
+    },
+    writer() {
+      const nickname = this.product.member?.nickname
+      return nickname ? `글쓴이 ${nickname}` : ''
+    },
+    statusLabel() {
+      if (!this.product.status) return ''
+      const status = this.product.status.toUpperCase()
+      if (status === 'RESERVED') return '예약중'
+      if (status === 'SELLING') return ''
+      return ''
+    },
   },
-};
+}
 </script>
 
-<style>
-@import "@/styles/components/ProductCard.css";
+<style scoped>
+.product-card {
+  background-color: #ffffff;
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  gap: 16px;
+  box-shadow: 0 1px 6px rgba(15, 23, 42, 0.08);
+}
+
+.product-image {
+  width: 96px;
+  height: 96px;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: #f1f5f9;
+  flex-shrink: 0;
+}
+
+.product-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.product-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+}
+
+.product-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.product-writer {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.product-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: #475569;
+}
+
+.product-price {
+  font-weight: 700;
+  color: #0f172a;
+}
+  .product-price {
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .status-badge {
+    margin-right: 8px;
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #0f172a;
+    background: #e0f2fe;
+  }
+
+  .product-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    color: #475569;
+  }
+
+  .product-price {
+    font-weight: 700;
+    color: #0f172a;
+  }
 </style>
