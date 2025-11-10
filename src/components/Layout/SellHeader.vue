@@ -1,45 +1,34 @@
 <template>
-  <header class="sell-header">
-    <button class="icon-button" @click="$emit('close')" aria-label="닫기">
-      <svg
-        width="22"
-        height="22"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.6"
-      >
-        <line x1="18" y1="6" x2="6" y2="18"></line>
-        <line x1="6" y1="6" x2="18" y2="18"></line>
-      </svg>
-    </button>
-    <h1 class="title">내 물건 팔기</h1>
-    <button class="link-button" type="button" @click="$emit('draft')">
-      임시저장
-    </button>
-  </header>
+  <HeaderShell rounded shadow>
+    <template #left>
+      <button class="icon-button" @click="$emit('close')" aria-label="닫기">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </template>
+
+    <template #center>
+      <span class="title">내 물건 팔기</span>
+    </template>
+
+    <template #right>
+      <button class="link-button" type="button" @click="$emit('draft')">임시저장</button>
+    </template>
+  </HeaderShell>
 </template>
 
 <script>
+import HeaderShell from './HeaderShell.vue'
+
 export default {
-  name: "SellHeader",
-};
+  name: 'SellHeader',
+  components: { HeaderShell },
+}
 </script>
 
 <style scoped>
-.sell-header {
-  max-width: 430px;
-  margin: 0 auto;
-  width: 100%;
-  min-height: 40px;
-  padding: 0 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
-}
-
 .icon-button {
   width: 40px;
   height: 40px;
