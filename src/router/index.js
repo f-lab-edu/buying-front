@@ -4,9 +4,11 @@ import MainPage from '../pages/MainPage.vue'
 import ProfilePage from '../pages/ProfilePage.vue'
 import GoogleOAuthRedirect from '../pages/GoogleOAuthRedirect.vue'
 import PostCreatePage from '../pages/PostCreatePage.vue'
+import PostDetailPage from '../pages/PostDetailPage.vue'
 import NoHeaderLayout from '../components/Layout/NoHeaderLayout.vue'
 import MainLayout from '../components/Layout/MainLayout.vue'
 import SellLayout from '../components/Layout/SellLayout.vue'
+import DetailLayout from '../components/Layout/DetailLayout.vue'
 
 const routes = [
   {
@@ -50,6 +52,13 @@ const routes = [
     children: [
       { path: '', name: 'PostCreate', component: PostCreatePage }
     ]
+  },
+  {
+    path: '/posts/:id',
+    component: DetailLayout,
+    children: [
+      { path: '', name: 'PostDetail', component: PostDetailPage }
+    ]
   }
 ]
 
@@ -61,7 +70,7 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('accessToken')
   const isAuthRoute = to.path === '/login' || to.path === '/signup'
-  const needsAuth = to.path.startsWith('/users/') || to.path.startsWith('/posts')
+  const needsAuth = to.path.startsWith('/users/') || to.path === '/posts/create'
 
   if (token && isAuthRoute) {
     return next('/users/profile')

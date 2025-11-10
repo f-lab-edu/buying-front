@@ -1,5 +1,5 @@
 <template>
-  <div class="product-card">
+  <div class="product-card" @click="$emit('select', product.id)">
     <div class="product-image">
       <img :src="thumbnail" :alt="product.title" class="product-img" />
     </div>
@@ -7,7 +7,7 @@
       <h3 class="product-title">{{ product.title }}</h3>
       <p v-if="writer" class="product-writer">{{ writer }}</p>
       <div class="product-meta">
-        <span class="status-badge" v-if="statusLabel">{{ statusLabel }}</span>
+        <span v-if="statusLabel" class="status-badge">{{ statusLabel }}</span>
         <span class="product-price">{{ formattedPrice }}</span>
       </div>
     </div>
@@ -21,6 +21,7 @@ const PLACEHOLDER_IMAGE = 'https://via.placeholder.com/300x200?text=No+Image'
 
 export default {
   name: 'ProductCard',
+  emits: ['select'],
   props: {
     product: {
       type: Object,
@@ -43,7 +44,6 @@ export default {
       if (!this.product.status) return ''
       const status = this.product.status.toUpperCase()
       if (status === 'RESERVED') return '예약중'
-      if (status === 'SELLING') return ''
       return ''
     },
   },
@@ -58,6 +58,13 @@ export default {
   display: flex;
   gap: 16px;
   box-shadow: 0 1px 6px rgba(15, 23, 42, 0.08);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.12);
 }
 
 .product-image {
@@ -99,41 +106,24 @@ export default {
 
 .product-meta {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
+  gap: 8px;
   font-size: 14px;
   color: #475569;
+}
+
+.status-badge {
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #0f172a;
+  background: #e0f2fe;
 }
 
 .product-price {
   font-weight: 700;
   color: #0f172a;
 }
-  .product-price {
-    font-weight: 700;
-    color: #0f172a;
-  }
-
-  .status-badge {
-    margin-right: 8px;
-    padding: 2px 8px;
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 600;
-    color: #0f172a;
-    background: #e0f2fe;
-  }
-
-  .product-meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 14px;
-    color: #475569;
-  }
-
-  .product-price {
-    font-weight: 700;
-    color: #0f172a;
-  }
 </style>

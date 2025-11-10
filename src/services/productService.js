@@ -12,11 +12,22 @@ export const fetchProducts = async () => {
       title: post.title,
       price: post.price,
       quantity: post.quantity ?? 1,
+      status: post.status ?? '',
       thumbnailUrl: post.thumbnailUrl || PLACEHOLDER_IMAGE,
-      member: post.member ?? null,
+      member: post.member ?? null
     }))
   } catch (error) {
     console.error('상품 목록 조회 오류:', error)
     return []
+  }
+}
+
+export const getPostDetail = async (postId) => {
+  try {
+    const response = await api.get(`/posts/${postId}`)
+    return response.data?.data ?? null
+  } catch (error) {
+    console.error(`게시물 상세 조회 오류 (${postId}):`, error)
+    throw error
   }
 }

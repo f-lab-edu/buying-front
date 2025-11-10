@@ -6,6 +6,7 @@
         :key="product.id"
         :product="product"
         @remove="removeProduct"
+        @select="openDetail"
       />
     </div>
     <button class="fab" @click="handleCreateProduct">
@@ -21,30 +22,62 @@
         <line x1="5" y1="12" x2="19" y2="12"></line>
       </svg>
     </button>
+    <CommonModal
+      v-model="showLoginModal"
+      title="알림"
+      message="로그인이 필요합니다!"
+      :show-actions="false"
+      :auto-close-ms="2000"
+      @close="redirectToLogin"
+    />
   </div>
 </template>
 
 <script>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onBeforeUnmount } from "vue";
 import { useRouter } from "vue-router";
 import ProductCard from "@/components/product/ProductCard.vue";
+import CommonModal from "@/components/modal/CommonModal.vue";
 import { fetchProducts } from "@/services/productService";
 import { isAuthenticated } from "@/utils/navigation";
 
 export default {
   name: "MainPage",
-  components: { ProductCard },
+  components: { ProductCard, CommonModal },
   setup() {
     const router = useRouter();
     const products = ref([]);
+    const showLoginModal = ref(false);
+    let timerId = null;
+
+    const clearTimer = () => {
+      if (timerId) {
+        clearTimeout(timerId);
+        timerId = null;
+      }
+    };
 
     const removeProduct = (productId) => {
       products.value = products.value.filter((p) => p.id !== productId);
     };
 
+    const openDetail = (productId) => {
+      router.push(`/posts/${productId}`);
+    };
+
+    const redirectToLogin = () => {
+      clearTimer();
+      showLoginModal.value = false;
+      router.push("/login");
+    };
+
     const handleCreateProduct = () => {
       if (!isAuthenticated()) {
-        router.push("/login");
+        showLoginModal.value = true;
+        clearTimer();
+        timerId = setTimeout(() => {
+          redirectToLogin();
+        }, 2000);
         return;
       }
       router.push('/posts/create');
@@ -58,10 +91,17 @@ export default {
       loadProducts();
     });
 
+    onBeforeUnmount(() => {
+      clearTimer();
+    });
+
     return {
       products,
+      showLoginModal,
       removeProduct,
       handleCreateProduct,
+      openDetail,
+      redirectToLogin,
     };
   },
 };
