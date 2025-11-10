@@ -47,7 +47,7 @@ export default {
         router.push("/login");
         return;
       }
-      alert("상품 등록 기능은 추후 구현 예정입니다.");
+      router.push('/posts/create');
     };
 
     const loadProducts = async () => {
@@ -69,7 +69,8 @@ export default {
 
 <style scoped>
 .main-page {
-  padding: 20px 16px 100px 16px;
+  position: relative;
+  padding: 20px 16px 120px 16px;
   background-color: #f8f9fa;
   min-height: 100vh;
 }
@@ -82,8 +83,8 @@ export default {
 
 .fab {
   position: fixed;
-  bottom: 100px;
-  right: 20px;
+  bottom: 96px;
+  right: max(20px, calc((100vw - 430px) / 2 + 20px));
   width: 56px;
   height: 56px;
   background-color: #ff6b9d;
@@ -110,12 +111,12 @@ export default {
 
 @media (max-width: 480px) {
   .main-page {
-    padding: 16px 12px 100px 12px;
+    padding: 16px 12px 140px 12px;
   }
 
   .fab {
-    bottom: 90px;
-    right: 16px;
+    bottom: 96px;
+    right: 20px;
     width: 48px;
     height: 48px;
   }

@@ -3,8 +3,10 @@ import LoginPage from '../pages/LoginPage.vue'
 import MainPage from '../pages/MainPage.vue'
 import ProfilePage from '../pages/ProfilePage.vue'
 import GoogleOAuthRedirect from '../pages/GoogleOAuthRedirect.vue'
+import PostCreatePage from '../pages/PostCreatePage.vue'
 import NoHeaderLayout from '../components/Layout/NoHeaderLayout.vue'
 import MainLayout from '../components/Layout/MainLayout.vue'
+import SellLayout from '../components/Layout/SellLayout.vue'
 
 const routes = [
   {
@@ -41,6 +43,13 @@ const routes = [
     children: [
       { path: '', name: 'Home', component: MainPage }
     ]
+  },
+  {
+    path: '/posts/create',
+    component: SellLayout,
+    children: [
+      { path: '', name: 'PostCreate', component: PostCreatePage }
+    ]
   }
 ]
 
@@ -49,11 +58,10 @@ const router = createRouter({
   routes
 })
 
-// 토큰 기반 라우터 가드
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('accessToken')
   const isAuthRoute = to.path === '/login' || to.path === '/signup'
-  const needsAuth = to.path.startsWith('/users/')
+  const needsAuth = to.path.startsWith('/users/') || to.path.startsWith('/posts')
 
   if (token && isAuthRoute) {
     return next('/users/profile')
