@@ -1,15 +1,22 @@
 <template>
-  <div class="header-container">
-    <div class="toolbar">
-      <router-link to="/" class="logo-link">
+  <HeaderShell fixed rounded shadow>
+    <template #left>
+      <router-link to="/" class="logo-link" aria-label="홈">
         <img src="@/assets/logo.png" alt="Buying Logo" class="logo-img" />
       </router-link>
+    </template>
 
+    <template #center>
+      <div class="header-center" />
+    </template>
+
+    <template #right>
       <div class="icons-container">
         <button
           class="icon-button"
           :class="{ selected: $route.path === '/notifications' }"
           @click="handleNotificationClick"
+          aria-label="알림"
         >
           <div class="notification-icon">
             <svg
@@ -20,8 +27,8 @@
               stroke="currentColor"
               stroke-width="1.5"
             >
-              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
             </svg>
             <div v-if="hasNewNotification" class="notification-dot"></div>
           </div>
@@ -31,6 +38,7 @@
           class="icon-button profile-button"
           :class="{ selected: $route.path === '/users/profile' }"
           @click="handleUserIconClick"
+          aria-label="프로필"
         >
           <div v-if="isLoggedIn && profileImg" class="profile-avatar">
             <img :src="profileImg" :alt="nickname || '프로필'" />
@@ -44,48 +52,46 @@
             stroke="currentColor"
             stroke-width="1.5"
           >
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-            <circle cx="12" cy="7" r="4"></circle>
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
           </svg>
         </button>
       </div>
-    </div>
-  </div>
+    </template>
+  </HeaderShell>
 </template>
 
 <script>
-import { ref, computed } from "vue";
-import { useRouter } from "vue-router";
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import HeaderShell from './HeaderShell.vue'
 
 export default {
-  name: "AppHeader",
+  name: 'AppHeader',
+  components: { HeaderShell },
   setup() {
-    const router = useRouter();
+    const router = useRouter()
 
-    // 로그인 상태 확인
-    const isLoggedIn = computed(() => {
-      return !!localStorage.getItem("accessToken");
-    });
-
-    const hasNewNotification = ref(false);
-    const profileImg = ref("");
-    const nickname = ref("");
+    const isLoggedIn = computed(() => !!localStorage.getItem('accessToken'))
+    const hasNewNotification = ref(false)
+    const profileImg = ref('')
+    const nickname = ref('')
 
     const handleUserIconClick = () => {
       if (isLoggedIn.value) {
-        router.push("/users/profile");
+        router.push('/users/profile')
       } else {
-        router.push("/login");
+        router.push('/login')
       }
-    };
+    }
 
     const handleNotificationClick = () => {
       if (!isLoggedIn.value) {
-        router.push("/login");
-        return;
+        router.push('/login')
+        return
       }
-      router.push("/notifications");
-    };
+      router.push('/notifications')
+    }
 
     return {
       isLoggedIn,
@@ -94,47 +100,16 @@ export default {
       nickname,
       handleUserIconClick,
       handleNotificationClick,
-    };
+    }
   },
-};
+}
 </script>
 
 <style scoped>
-.header-container {
-  max-width: 430px;
-  margin: 0 auto;
-  width: 100%;
-  position: fixed;
-  left: 0;
-  right: 0;
-  top: 0;
-  z-index: 1000;
-  border-top-left-radius: 24px;
-  border-top-right-radius: 24px;
-  background-color: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.toolbar {
-  max-width: 430px;
-  margin: 0 auto;
-  width: 100%;
-  padding: 0 16px;
-  min-height: 56px;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  flex-direction: row !important;
-}
-
 .logo-link {
-  display: flex !important;
+  display: flex;
   align-items: center;
   text-decoration: none;
-  flex-shrink: 0 !important;
-  order: 0 !important;
-  margin-right: auto !important;
-  margin-left: 0 !important;
 }
 
 .logo-img {
@@ -146,9 +121,6 @@ export default {
   display: flex;
   gap: 12px;
   margin-right: -8px;
-  flex-shrink: 0;
-  order: 2;
-  margin-left: auto;
 }
 
 .icon-button {
@@ -219,27 +191,7 @@ export default {
   object-fit: cover;
 }
 
-@media (min-width: 768px) and (max-width: 1024px) {
-  .header-container {
-    max-width: 100%;
-    border-radius: 0;
-  }
-
-  .toolbar {
-    max-width: 100%;
-    padding: 0 24px;
-  }
-}
-
-@media (max-width: 767px) {
-  .header-container {
-    max-width: 100%;
-    border-radius: 0;
-  }
-
-  .toolbar {
-    max-width: 100%;
-    padding: 0 16px;
-  }
+.header-center {
+  width: 100%;
 }
 </style>
