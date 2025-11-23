@@ -9,6 +9,8 @@ import NoHeaderLayout from '../components/Layout/NoHeaderLayout.vue'
 import MainLayout from '../components/Layout/MainLayout.vue'
 import SellLayout from '../components/Layout/SellLayout.vue'
 import DetailLayout from '../components/Layout/DetailLayout.vue'
+import ChatroomPage from '../pages/ChatroomPage.vue'
+
 
 const routes = [
   {
@@ -58,6 +60,18 @@ const routes = [
     component: DetailLayout,
     children: [
       { path: '', name: 'PostDetail', component: PostDetailPage }
+    ]
+  },
+  {
+    path: '/chat/:roomId',
+    component: DetailLayout,
+    children: [
+      { 
+        path: '', 
+        name: 'Chatroom', 
+        component: ChatroomPage,
+        props: true
+      }
     ]
   }
 ]

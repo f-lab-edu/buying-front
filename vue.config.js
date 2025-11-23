@@ -12,6 +12,8 @@ module.exports = defineConfig({
         },
         logLevel: 'debug'
       }
+      // WebSocket 연결은 직접 URL 사용 (http://localhost:8080/chat)
+      // 프록시 설정으로 인한 REST API와의 충돌 방지
     }
   }
 })
