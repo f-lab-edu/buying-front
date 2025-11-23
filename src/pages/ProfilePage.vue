@@ -12,7 +12,7 @@
     <div class="user-email">{{ profile.email || "-" }}</div>
     <div class="btn-group">
       <button class="btn primary" @click="showWip">판매 목록</button>
-      <button class="btn primary" @click="showWip">채팅방 목록</button>
+      <button class="btn primary" @click="goToChatList">채팅방 목록</button>
       <button class="btn outline" @click="showWip">회원정보 수정</button>
       <button class="btn outline logout-btn" @click="openLogoutConfirm">
         로그아웃
@@ -78,6 +78,10 @@ export default {
       modalOpen.value = true;
     };
 
+    const goToChatList = () => {
+      router.push({ name: "ChatList" });
+    };
+
     const openLogoutConfirm = () => {
       logoutOpen.value = true;
     };
@@ -103,6 +107,7 @@ export default {
       avatarSrc,
       goBack,
       showWip,
+      goToChatList,
       openLogoutConfirm,
       handleLogout,
     };

@@ -54,4 +54,20 @@ export const markAsRead = async (roomId) => {
   }
 }
 
+/**
+ * 채팅방 목록 조회
+ * @param {number} memberId - 회원 ID
+ * @returns {Promise} 채팅방 목록
+ */
+export const getChatRooms = async (memberId) => {
+  try {
+    const response = await api.get(`/chat/rooms/${memberId}`)
+    // 응답 형식: { rooms: [...] }
+    return response.data?.rooms || []
+  } catch (error) {
+    console.error('채팅방 목록 조회 오류:', error)
+    throw error
+  }
+}
+
 

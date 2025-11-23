@@ -300,6 +300,12 @@ export default {
         return;
       }
 
+      // 내 게시글인 경우 채팅방 목록으로 이동
+      if (isMyPost.value) {
+        router.push({ name: "ChatList" });
+        return;
+      }
+
       try {
         // 현재 사용자 ID 가져오기 (buyerId)
         const buyerId = localStorage.getItem("memberId");
