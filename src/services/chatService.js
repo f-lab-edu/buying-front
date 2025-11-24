@@ -26,11 +26,14 @@ export const getOrCreateChatRoom = async (postId, buyerId) => {
 /**
  * 채팅 내역 조회
  * @param {number} roomId - 채팅방 ID
+ * @param {number} memberId - 회원 ID
  * @returns {Promise} 채팅 메시지 목록
  */
-export const getChatHistory = async (roomId) => {
+export const getChatHistory = async (roomId, memberId) => {
   try {
-    const response = await api.get(`/chat/messages/${roomId}`)
+    const response = await api.get(`/chat/messages/${roomId}`, {
+      params: { memberId: Number(memberId) }
+    })
     // 응답 형식: { messages: [...] }
     return response.data?.messages || []
   } catch (error) {

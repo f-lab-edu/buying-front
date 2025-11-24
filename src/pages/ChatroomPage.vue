@@ -183,6 +183,7 @@ import { useRoute, useRouter } from "vue-router";
 import SockJS from "sockjs-client";
 import { Stomp } from "@stomp/stompjs";
 import { getPostDetail } from "@/services/productService";
+import { getChatHistory } from "@/services/chatService";
 import { formatPrice } from "@/utils/format";
 import api from "@/utils/api";
 import profileImg from "@/assets/profile.png";
@@ -255,9 +256,11 @@ export default {
 
     const loadChatHistory = async () => {
       try {
-        const response = await api.get(`/chat/messages/${roomId.value}`);
-        // 응답 형식: { messages: [...] }
-        const history = response.data?.messages || [];
+        if (!currentUserId.value) {
+          console.error("사용자 ID가 없습니다.");
+          return;
+        }
+        const history = await getChatHistory(roomId.value, currentUserId.value);
         messages.value = history
           .map((msg) => ({
             id: msg.id,
