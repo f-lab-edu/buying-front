@@ -114,7 +114,12 @@
               formatTime(room.lastMessageTime)
             }}</span>
           </div>
-          <div class="chat-message">{{ room.lastMessage }}</div>
+          <div class="chat-message-row">
+            <div class="chat-message">{{ room.lastMessage }}</div>
+            <span v-if="room.unreadCount > 0" class="unread-badge">
+              {{ room.unreadCount > 99 ? "99+" : room.unreadCount }}
+            </span>
+          </div>
         </div>
       </div>
     </div>
@@ -127,7 +132,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import { useRouter } from "vue-router";
 import { getChatRooms } from "@/services/chatService";
 import profileImg from "@/assets/profile.png";
@@ -162,6 +167,16 @@ export default {
         console.error("채팅방 목록 불러오기 오류:", error);
       } finally {
         isLoading.value = false;
+      }
+    };
+
+    // SSE 이벤트로 채팅방 리스트 갱신
+    const handleChatListUpdate = (event) => {
+      if (event.detail?.rooms) {
+        rooms.value = event.detail.rooms;
+      } else {
+        // 이벤트에 rooms가 없으면 API 다시 호출
+        loadChatRooms();
       }
     };
 
@@ -202,6 +217,13 @@ export default {
 
     onMounted(() => {
       loadChatRooms();
+
+      // 전역 이벤트 리스너 (App 레벨 SSE에서 발생한 이벤트 수신)
+      window.addEventListener("chat-list-updated", handleChatListUpdate);
+    });
+
+    onBeforeUnmount(() => {
+      window.removeEventListener("chat-list-updated", handleChatListUpdate);
     });
 
     return {
@@ -373,12 +395,36 @@ export default {
   flex-shrink: 0;
 }
 
+.chat-message-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .chat-message {
   font-size: 14px;
   color: #6b7280;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.unread-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  background: #ff7a00;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 10px;
+  flex-shrink: 0;
 }
 
 .loading-state,
