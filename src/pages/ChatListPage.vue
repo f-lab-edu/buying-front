@@ -111,13 +111,13 @@
           <div class="chat-header-row">
             <span class="chat-name">{{ room.opponentName }}</span>
             <span class="chat-time">{{
-              formatTime(room.lastMessageTime)
+              formatTime(room.lastTime)
             }}</span>
           </div>
           <div class="chat-message-row">
-            <div class="chat-message">{{ room.lastMessage }}</div>
-            <span v-if="room.unreadCount > 0" class="unread-badge">
-              {{ room.unreadCount > 99 ? "99+" : room.unreadCount }}
+            <div class="chat-message">{{ room.lastContent || room.lastMessage || "메시지가 없습니다" }}</div>
+            <span v-if="(room.unread || room.unreadCount || 0) > 0" class="unread-badge">
+              {{ (room.unread || room.unreadCount || 0) > 99 ? "99+" : (room.unread || room.unreadCount || 0) }}
             </span>
           </div>
         </div>
@@ -161,10 +161,32 @@ export default {
           router.push("/login");
           return;
         }
-        const chatRooms = await getChatRooms(memberId);
-        rooms.value = chatRooms;
+        const chatRooms = await getChatRooms(Number(memberId));
+        console.log('📥 채팅방 목록 원본 데이터:', chatRooms);
+        
+        // 최신 메시지가 있는 채팅방을 위로 정렬
+        const sortedRooms = [...chatRooms].sort((a, b) => {
+          const timeA = new Date(a.lastTime || 0).getTime();
+          const timeB = new Date(b.lastTime || 0).getTime();
+          return timeB - timeA; // 최신순
+        });
+        
+        // 각 채팅방 데이터 확인
+        sortedRooms.forEach((room, index) => {
+          console.log(`채팅방 ${index + 1}:`, {
+            roomId: room.roomId,
+            opponentName: room.opponentName,
+            lastContent: room.lastContent,
+            lastTime: room.lastTime,
+            unread: room.unread,
+            전체데이터: room
+          });
+        });
+        
+        rooms.value = sortedRooms;
+        console.log('✅ 채팅방 목록 로드 완료:', sortedRooms.length, '개');
       } catch (error) {
-        console.error("채팅방 목록 불러오기 오류:", error);
+        console.error("❌ 채팅방 목록 불러오기 오류:", error);
       } finally {
         isLoading.value = false;
       }
@@ -172,10 +194,19 @@ export default {
 
     // SSE 이벤트로 채팅방 리스트 갱신
     const handleChatListUpdate = (event) => {
+      console.log('📬 chat-list-updated 이벤트 수신:', event.detail);
       if (event.detail?.rooms) {
-        rooms.value = event.detail.rooms;
+        // 최신 메시지가 있는 채팅방을 위로 정렬
+        const sortedRooms = [...event.detail.rooms].sort((a, b) => {
+          const timeA = new Date(a.lastTime || 0).getTime();
+          const timeB = new Date(b.lastTime || 0).getTime();
+          return timeB - timeA; // 최신순
+        });
+        rooms.value = sortedRooms;
+        console.log('✅ 채팅방 목록 업데이트 완료:', sortedRooms.length, '개');
       } else {
         // 이벤트에 rooms가 없으면 API 다시 호출
+        console.log('⚠️ 이벤트에 rooms가 없어 API를 다시 호출합니다.');
         loadChatRooms();
       }
     };
@@ -220,10 +251,24 @@ export default {
 
       // 전역 이벤트 리스너 (App 레벨 SSE에서 발생한 이벤트 수신)
       window.addEventListener("chat-list-updated", handleChatListUpdate);
+      
+      // 채팅방 입장 시 목록 갱신
+      const handleChatRoomEntered = () => {
+        console.log('🔄 채팅방 입장 이벤트 수신 - 목록 갱신');
+        loadChatRooms();
+      };
+      window.addEventListener("chat-room-entered", handleChatRoomEntered);
+      
+      // 컴포넌트 언마운트 시 리스너 제거를 위해 저장
+      window._chatRoomEnteredHandler = handleChatRoomEntered;
     });
 
     onBeforeUnmount(() => {
       window.removeEventListener("chat-list-updated", handleChatListUpdate);
+      if (window._chatRoomEnteredHandler) {
+        window.removeEventListener("chat-room-entered", window._chatRoomEnteredHandler);
+        delete window._chatRoomEnteredHandler;
+      }
     });
 
     return {

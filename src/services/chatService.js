@@ -65,8 +65,11 @@ export const markAsRead = async (roomId) => {
 export const getChatRooms = async (memberId) => {
   try {
     const response = await api.get(`/chat/rooms/${memberId}`)
+    console.log('📥 채팅방 목록 API 응답:', response.data)
     // 응답 형식: { rooms: [...] }
-    return response.data?.rooms || []
+    const rooms = response.data?.rooms || response.data || []
+    console.log('📥 파싱된 채팅방 목록:', rooms)
+    return rooms
   } catch (error) {
     console.error('채팅방 목록 조회 오류:', error)
     throw error

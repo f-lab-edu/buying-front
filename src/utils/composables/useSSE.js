@@ -114,36 +114,49 @@ export function initGlobalSSE() {
   // 채팅방 리스트 갱신 함수
   const refreshChatList = async () => {
     try {
-      const rooms = await getChatRooms(memberId)
+      const currentMemberId = localStorage.getItem('memberId')
+      if (!currentMemberId) {
+        console.warn('⚠️ memberId가 없어 채팅방 목록을 갱신할 수 없습니다.')
+        return
+      }
+      
+      console.log('📥 채팅방 목록 API 호출 시작...')
+      const rooms = await getChatRooms(Number(currentMemberId))
+      console.log('✅ 채팅방 목록 갱신 완료:', rooms.length, '개')
+      
       // 전역 이벤트를 통해 ChatListPage에 알림
       window.dispatchEvent(new CustomEvent('chat-list-updated', { detail: { rooms } }))
     } catch (error) {
-      console.error('채팅방 리스트 갱신 오류:', error)
+      console.error('❌ 채팅방 리스트 갱신 오류:', error)
     }
   }
 
   globalRefreshCallback = refreshChatList
 
-  // SSE 연결
+  // SSE 연결 (프록시를 통해 연결, 백엔드에서 memberId로 인증 처리)
   const sseUrl = `/api/chat/subscribe/${memberId}`
+  console.log('🔌 SSE 연결 시도:', sseUrl)
   globalEventSource = new EventSource(sseUrl)
 
   globalEventSource.onopen = () => {
-    console.log('전역 SSE 연결 성공:', sseUrl)
+    console.log('✅ 전역 SSE 연결 성공:', sseUrl)
   }
 
   // new-message 이벤트 수신 처리
   globalEventSource.addEventListener('new-message', (event) => {
     try {
       const data = JSON.parse(event.data)
-      console.log('전역 SSE new-message 이벤트 수신:', data)
+      console.log('📨 전역 SSE new-message 이벤트 수신:', data)
+      console.log('📨 roomId:', data.roomId)
       
-      // 채팅방 리스트 갱신
+      // 채팅방 리스트 갱신 (백엔드에서 최신 unread count와 마지막 메시지 포함)
       if (globalRefreshCallback) {
+        console.log('🔄 채팅방 목록 갱신 시작...')
         globalRefreshCallback()
       }
     } catch (error) {
-      console.error('SSE 이벤트 파싱 오류:', error)
+      console.error('❌ SSE 이벤트 파싱 오류:', error)
+      console.error('❌ 원본 데이터:', event.data)
     }
   })
 
