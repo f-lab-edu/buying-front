@@ -9,6 +9,9 @@ import NoHeaderLayout from '../components/Layout/NoHeaderLayout.vue'
 import MainLayout from '../components/Layout/MainLayout.vue'
 import SellLayout from '../components/Layout/SellLayout.vue'
 import DetailLayout from '../components/Layout/DetailLayout.vue'
+import ChatroomPage from '../pages/ChatroomPage.vue'
+import ChatListPage from '../pages/ChatListPage.vue'
+
 
 const routes = [
   {
@@ -59,6 +62,29 @@ const routes = [
     children: [
       { path: '', name: 'PostDetail', component: PostDetailPage }
     ]
+  },
+  {
+    path: '/chat/:roomId',
+    component: DetailLayout,
+    children: [
+      { 
+        path: '', 
+        name: 'Chatroom', 
+        component: ChatroomPage,
+        props: true
+      }
+    ]
+  },
+  {
+    path: '/chat',
+    component: MainLayout,
+    children: [
+      { 
+        path: '', 
+        name: 'ChatList', 
+        component: ChatListPage
+      }
+    ]
   }
 ]
 
@@ -70,7 +96,7 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('accessToken')
   const isAuthRoute = to.path === '/login' || to.path === '/signup'
-  const needsAuth = to.path.startsWith('/users/') || to.path === '/posts/create'
+  const needsAuth = to.path.startsWith('/users/') || to.path === '/posts/create' || to.path.startsWith('/chat')
 
   if (token && isAuthRoute) {
     return next('/users/profile')
