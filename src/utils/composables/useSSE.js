@@ -27,10 +27,17 @@ export function useSSE() {
       return
     }
 
+    // 토큰 확인
+    const token = localStorage.getItem('accessToken')
+    if (!token) {
+      console.warn('SSE 연결 실패: accessToken이 없습니다.')
+      return
+    }
+
     refreshCallback = onRefresh
 
-    // SSE 연결 (프록시를 통해 연결)
-    const sseUrl = `/api/chat/subscribe/${memberId}`
+    // SSE 연결 (토큰을 쿼리 파라미터로 전달)
+    const sseUrl = `/api/chat/subscribe/${memberId}?token=${encodeURIComponent(token)}`
     eventSource = new EventSource(sseUrl)
 
     eventSource.onopen = () => {
@@ -133,8 +140,8 @@ export function initGlobalSSE() {
 
   globalRefreshCallback = refreshChatList
 
-  // SSE 연결 (프록시를 통해 연결, 백엔드에서 memberId로 인증 처리)
-  const sseUrl = `/api/chat/subscribe/${memberId}`
+  // SSE 연결 (토큰을 쿼리 파라미터로 전달)
+  const sseUrl = `/api/chat/subscribe/${memberId}?token=${encodeURIComponent(token)}`
   console.log('🔌 SSE 연결 시도:', sseUrl)
   globalEventSource = new EventSource(sseUrl)
 

@@ -193,19 +193,35 @@ export default {
     };
 
     // SSE 이벤트로 채팅방 리스트 갱신
+    const normalizeRooms = (sourceRooms = []) => {
+      const normalizedRooms = sourceRooms.map((room) => {
+        const lastContent = room.lastContent ?? room.lastMessage ?? room.lastMessagePreview ?? '';
+        const lastTime = room.lastTime ?? room.lastMessageTime ?? room.lastMessageCreatedAt ?? '';
+        const unread = room.unread ?? room.unreadCount ?? room.unreadMessages ?? 0;
+
+        return {
+          ...room,
+          lastContent,
+          lastTime,
+          unread
+        };
+      });
+
+      const sortedRooms = [...normalizedRooms].sort((a, b) => {
+        const timeA = new Date(a.lastTime || 0).getTime();
+        const timeB = new Date(b.lastTime || 0).getTime();
+        return timeB - timeA;
+      });
+
+      rooms.value = sortedRooms;
+      console.log('✅ 채팅방 목록 업데이트 완료:', sortedRooms.length, '개', sortedRooms.map(r => ({ roomId: r.roomId, unread: r.unread })));
+    };
+
     const handleChatListUpdate = (event) => {
       console.log('📬 chat-list-updated 이벤트 수신:', event.detail);
       if (event.detail?.rooms) {
-        // 최신 메시지가 있는 채팅방을 위로 정렬
-        const sortedRooms = [...event.detail.rooms].sort((a, b) => {
-          const timeA = new Date(a.lastTime || 0).getTime();
-          const timeB = new Date(b.lastTime || 0).getTime();
-          return timeB - timeA; // 최신순
-        });
-        rooms.value = sortedRooms;
-        console.log('✅ 채팅방 목록 업데이트 완료:', sortedRooms.length, '개');
+        normalizeRooms(event.detail.rooms);
       } else {
-        // 이벤트에 rooms가 없으면 API 다시 호출
         console.log('⚠️ 이벤트에 rooms가 없어 API를 다시 호출합니다.');
         loadChatRooms();
       }
