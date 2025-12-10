@@ -171,6 +171,8 @@ import { useRoute, useRouter } from "vue-router";
 import { formatPrice } from "@/utils/format";
 import { getPostDetail } from "@/services/productService";
 import { getOrCreateChatRoom } from "@/services/chatService";
+import { initializePaymentWidget, requestPayment } from "@/utils/tossPayments";
+import { createOrder } from "@/services/orderService";
 import CommonModal from "@/components/modal/CommonModal.vue";
 import profileImg from "@/assets/profile.png";
 
@@ -335,8 +337,55 @@ export default {
       }
     };
 
-    const handlePay = () => {
-      alert("결제 기능은 준비 중입니다.");
+    const handlePay = async () => {
+      // 1. 로그인 확인
+      if (!hasToken()) {
+        showLoginModal.value = true;
+        setTimeout(() => {
+          redirectToLogin();
+        }, 2000);
+        return;
+      }
+
+      // 2. 내 게시글인지 확인
+      if (isMyPost.value) {
+        alert("본인의 게시글은 구매할 수 없습니다.");
+        return;
+      }
+
+      try {
+        // 3. 주문 수량 확인 (현재는 1개로 고정, 나중에 수량 선택 기능 추가 가능)
+        const quantity = 1;  // 또는 사용자가 선택한 수량
+
+        // 4. 주문 생성 API 호출
+        const orderData = await createOrder({
+          postId: Number(route.params.id),
+          quantity: quantity
+        });
+        // orderData = { orderId, orderName, amount }
+
+        // 5. 사용자 정보 가져오기
+        const memberId = localStorage.getItem("memberId");
+        const user = JSON.parse(localStorage.getItem("user") || "{}");
+
+        // 6. 토스페이먼츠 SDK 초기화
+        const paymentWidget = await initializePaymentWidget(memberId);
+
+        // 7. 결제 요청 (결제창 열기)
+        await requestPayment(paymentWidget, {
+          orderId: orderData.orderId,
+          orderName: orderData.orderName,
+          amount: orderData.amount,
+          customerEmail: user.email || "",  // 선택
+          customerName: user.name || user.nickname || "",  // 선택
+        });
+
+        // 결제창이 열리면 사용자가 결제 진행
+        // 결제 완료 후 successUrl로 리다이렉트됨
+      } catch (error) {
+        console.error("결제 요청 실패:", error);
+        alert("결제 요청 중 오류가 발생했습니다: " + (error.message || "알 수 없는 오류"));
+      }
     };
 
     const redirectToLogin = () => {

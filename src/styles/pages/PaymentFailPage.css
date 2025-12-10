@@ -1,0 +1,82 @@
+/**
+ * 결제 실패 페이지 스타일
+ * 객체지향적으로 디자인 관련 스타일을 분리
+ */
+
+.payment-fail-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: #f5f7fa;
+}
+
+.payment-fail-page .fail {
+  text-align: center;
+  background: white;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  max-width: 400px;
+  width: 100%;
+}
+
+.payment-fail-page .error-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #ef4444;
+  color: white;
+  font-size: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+.payment-fail-page h1 {
+  margin: 0 0 16px;
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.payment-fail-page p {
+  margin: 8px 0;
+  color: #6b7280;
+}
+
+.payment-fail-page .actions {
+  margin-top: 24px;
+  display: flex;
+  gap: 12px;
+  flex-direction: column;
+}
+
+.payment-fail-page .primary-button,
+.payment-fail-page .secondary-button {
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.payment-fail-page .primary-button:hover,
+.payment-fail-page .secondary-button:hover {
+  opacity: 0.9;
+}
+
+.payment-fail-page .primary-button {
+  background: #ff7a00;
+  color: white;
+}
+
+.payment-fail-page .secondary-button {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+

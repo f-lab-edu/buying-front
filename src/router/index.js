@@ -11,6 +11,8 @@ import SellLayout from '../components/Layout/SellLayout.vue'
 import DetailLayout from '../components/Layout/DetailLayout.vue'
 import ChatroomPage from '../pages/ChatroomPage.vue'
 import ChatListPage from '../pages/ChatListPage.vue'
+import PaymentSuccessPage from '../pages/PaymentSuccessPage.vue'
+import PaymentFailPage from '../pages/PaymentFailPage.vue'
 
 
 const routes = [
@@ -84,6 +86,20 @@ const routes = [
         name: 'ChatList', 
         component: ChatListPage
       }
+    ]
+  },
+  {
+    path: '/payment/success',
+    component: NoHeaderLayout,
+    children: [
+      { path: '', name: 'PaymentSuccess', component: PaymentSuccessPage }
+    ]
+  },
+  {
+    path: '/payment/fail',
+    component: NoHeaderLayout,
+    children: [
+      { path: '', name: 'PaymentFail', component: PaymentFailPage }
     ]
   }
 ]
