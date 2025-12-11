@@ -9,6 +9,55 @@
       @close="redirectToLogin"
     />
 
+    <!-- 수량 선택 모달 -->
+    <div v-if="showQuantityModal" class="quantity-modal-backdrop" @click.self="closeQuantityModal">
+      <div class="quantity-modal-card">
+        <div class="quantity-modal-header">
+          <h3>구매 수량 선택</h3>
+          <button class="quantity-modal-close" @click="closeQuantityModal">×</button>
+        </div>
+        <div class="quantity-modal-body">
+          <div class="quantity-info">
+            <p class="quantity-label">수량</p>
+            <p class="quantity-available">재고: {{ maxQuantity }}개</p>
+          </div>
+          <div class="quantity-selector">
+            <button 
+              class="quantity-btn" 
+              @click="decreaseQuantity"
+              :disabled="selectedQuantity <= 1"
+            >
+              −
+            </button>
+            <input 
+              type="number" 
+              v-model.number="selectedQuantity" 
+              :min="1" 
+              :max="maxQuantity"
+              class="quantity-input"
+              @input="validateQuantity"
+            />
+            <button 
+              class="quantity-btn" 
+              @click="increaseQuantity"
+              :disabled="selectedQuantity >= maxQuantity"
+            >
+              +
+            </button>
+          </div>
+          <div class="quantity-summary">
+            <p class="total-price">
+              총 결제금액: <strong>{{ formatPrice(totalPrice) }}원</strong>
+            </p>
+          </div>
+        </div>
+        <div class="quantity-modal-actions">
+          <button class="quantity-cancel-btn" @click="closeQuantityModal">취소</button>
+          <button class="quantity-confirm-btn" @click="confirmPayment">결제하기</button>
+        </div>
+      </div>
+    </div>
+
     <div v-if="!isLoading && post" class="post-detail">
       <div class="hero">
         <img :src="currentImage" alt="상품 이미지" class="hero-image" />
@@ -189,6 +238,8 @@ export default {
     const currentIndex = ref(0);
     const isLoading = ref(true);
     const showLoginModal = ref(false);
+    const showQuantityModal = ref(false);
+    const selectedQuantity = ref(1);
 
     const hasToken = () => !!localStorage.getItem("accessToken");
 
@@ -235,6 +286,18 @@ export default {
       const qty = Number(post.value.quantity);
       if (!Number.isFinite(qty) || qty <= 0) return "";
       return qty;
+    });
+
+    const maxQuantity = computed(() => {
+      if (!post.value) return 1;
+      const qty = Number(post.value.quantity);
+      return Number.isFinite(qty) && qty > 0 ? qty : 1;
+    });
+
+    const totalPrice = computed(() => {
+      if (!post.value) return 0;
+      const price = Number(post.value.price) || 0;
+      return price * selectedQuantity.value;
     });
 
     const statusLabel = computed(() => {
@@ -337,7 +400,7 @@ export default {
       }
     };
 
-    const handlePay = async () => {
+    const openQuantityModal = () => {
       // 1. 로그인 확인
       if (!hasToken()) {
         showLoginModal.value = true;
@@ -353,25 +416,62 @@ export default {
         return;
       }
 
-      try {
-        // 3. 주문 수량 확인 (현재는 1개로 고정, 나중에 수량 선택 기능 추가 가능)
-        const quantity = 1;  // 또는 사용자가 선택한 수량
+      // 수량 초기화
+      selectedQuantity.value = 1;
+      showQuantityModal.value = true;
+    };
 
-        // 4. 주문 생성 API 호출
+    const closeQuantityModal = () => {
+      showQuantityModal.value = false;
+    };
+
+    const increaseQuantity = () => {
+      if (selectedQuantity.value < maxQuantity.value) {
+        selectedQuantity.value++;
+      }
+    };
+
+    const decreaseQuantity = () => {
+      if (selectedQuantity.value > 1) {
+        selectedQuantity.value--;
+      }
+    };
+
+    const validateQuantity = () => {
+      if (selectedQuantity.value < 1) {
+        selectedQuantity.value = 1;
+      } else if (selectedQuantity.value > maxQuantity.value) {
+        selectedQuantity.value = maxQuantity.value;
+      }
+    };
+
+    const confirmPayment = async () => {
+      closeQuantityModal();
+
+      try {
+        console.log('🔍 결제 시작, memberId:', localStorage.getItem("memberId"));
+
+        // 1. 주문 생성 API 호출
         const orderData = await createOrder({
           postId: Number(route.params.id),
-          quantity: quantity
+          quantity: selectedQuantity.value
         });
         // orderData = { orderId, orderName, amount }
+        console.log('✅ 주문 생성 완료:', orderData);
 
-        // 5. 사용자 정보 가져오기
+        // 2. 사용자 정보 가져오기
         const memberId = localStorage.getItem("memberId");
+        if (!memberId) {
+          alert("사용자 정보를 찾을 수 없습니다. 다시 로그인해주세요.");
+          redirectToLogin();
+          return;
+        }
         const user = JSON.parse(localStorage.getItem("user") || "{}");
 
-        // 6. 토스페이먼츠 SDK 초기화
+        // 3. 토스페이먼츠 SDK 초기화
         const paymentWidget = await initializePaymentWidget(memberId);
 
-        // 7. 결제 요청 (결제창 열기)
+        // 4. 결제 요청 (결제창 열기)
         await requestPayment(paymentWidget, {
           orderId: orderData.orderId,
           orderName: orderData.orderName,
@@ -388,6 +488,10 @@ export default {
         const errorMessage = error.response?.data?.message || error.message || "알 수 없는 오류";
         alert("결제 요청 중 오류가 발생했습니다: " + errorMessage);
       }
+    };
+
+    const handlePay = () => {
+      openQuantityModal();
     };
 
     const redirectToLogin = () => {
@@ -410,6 +514,8 @@ export default {
       currentImage,
       formattedPrice,
       displayQuantity,
+      maxQuantity,
+      totalPrice,
       statusLabel,
       sellerAvatar,
       isMyPost,
@@ -423,6 +529,15 @@ export default {
       handlePay,
       isLoading,
       showLoginModal,
+      showQuantityModal,
+      selectedQuantity,
+      openQuantityModal,
+      closeQuantityModal,
+      increaseQuantity,
+      decreaseQuantity,
+      validateQuantity,
+      confirmPayment,
+      formatPrice,
       redirectToLogin,
     };
   },
@@ -711,5 +826,199 @@ export default {
 
 .carousel-btn.next {
   right: 12px;
+}
+
+/* 수량 선택 모달 */
+.quantity-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.quantity-modal-card {
+  width: 360px;
+  max-width: 92vw;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.quantity-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.quantity-modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.quantity-modal-close {
+  border: none;
+  background: transparent;
+  font-size: 24px;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.quantity-modal-close:hover {
+  background: #f1f5f9;
+}
+
+.quantity-modal-body {
+  padding: 24px 20px;
+}
+
+.quantity-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.quantity-label {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.quantity-available {
+  margin: 0;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.quantity-selector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.quantity-btn {
+  width: 44px;
+  height: 44px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  border-radius: 12px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.quantity-btn:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.quantity-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.quantity-input {
+  width: 80px;
+  height: 44px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  background: #fff;
+  -moz-appearance: textfield;
+}
+
+.quantity-input::-webkit-outer-spin-button,
+.quantity-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.quantity-input:focus {
+  outline: none;
+  border-color: #ff7a00;
+  box-shadow: 0 0 0 3px rgba(255, 122, 0, 0.1);
+}
+
+.quantity-summary {
+  padding: 16px;
+  background: #f9fafb;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.total-price {
+  margin: 0;
+  font-size: 16px;
+  color: #6b7280;
+}
+
+.total-price strong {
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.quantity-modal-actions {
+  display: flex;
+  gap: 12px;
+  padding: 16px 20px 20px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.quantity-cancel-btn,
+.quantity-confirm-btn {
+  flex: 1;
+  height: 48px;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.quantity-cancel-btn {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.quantity-cancel-btn:hover {
+  opacity: 0.8;
+}
+
+.quantity-confirm-btn {
+  background: #ff7a00;
+  color: white;
+}
+
+.quantity-confirm-btn:hover {
+  opacity: 0.9;
 }
 </style>
