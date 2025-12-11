@@ -384,7 +384,9 @@ export default {
         // 결제 완료 후 successUrl로 리다이렉트됨
       } catch (error) {
         console.error("결제 요청 실패:", error);
-        alert("결제 요청 중 오류가 발생했습니다: " + (error.message || "알 수 없는 오류"));
+        // 백엔드 에러 응답: ErrorResponse { message, code }
+        const errorMessage = error.response?.data?.message || error.message || "알 수 없는 오류";
+        alert("결제 요청 중 오류가 발생했습니다: " + errorMessage);
       }
     };
 

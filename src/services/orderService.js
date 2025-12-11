@@ -7,7 +7,7 @@ import api from '@/utils/api'
  */
 export const createOrder = async (payload) => {
   const response = await api.post('/orders', payload)
-  // 응답 형식: { message: "...", code: 201, data: { orderId, orderName, amount } }
-  return response.data.data  // data 필드만 반환
+  // 백엔드 응답: 직접 OrderCreateResponse DTO 반환 (ApiResponse로 감싸지 않음)
+  return response.data
 }
 

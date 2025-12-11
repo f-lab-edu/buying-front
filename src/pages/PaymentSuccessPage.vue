@@ -74,6 +74,7 @@ export default {
         console.error('결제 승인 실패:', error)
         isProcessing.value = false
         isError.value = true
+        // 백엔드 에러 응답: ErrorResponse { message, code }
         errorMessage.value = error.response?.data?.message || error.message || '알 수 없는 오류가 발생했습니다.'
       }
     }
