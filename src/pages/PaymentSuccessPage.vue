@@ -57,17 +57,32 @@ export default {
         if (!paymentInfo.paymentKey || !paymentInfo.orderId || !paymentInfo.amount) {
           throw new Error('결제 정보가 올바르지 않습니다.')
         }
+        
+        // 2. amount 검증 (보안: 클라이언트에서 금액 조작 방지)
+        // setAmount()로 설정한 금액과 URL의 amount가 같은지 확인
+        const storedAmount = sessionStorage.getItem('toss_payment_amount')
+        if (storedAmount && parseInt(storedAmount) !== paymentInfo.amount) {
+          console.error('금액 불일치:', {
+            stored: storedAmount,
+            url: paymentInfo.amount
+          })
+          throw new Error('결제 금액이 일치하지 않습니다. 결제를 취소합니다.')
+        }
+        
+        // 검증 완료 후 저장된 금액 삭제
+        sessionStorage.removeItem('toss_payment_amount')
+        
         orderId.value = paymentInfo.orderId
         amount.value = paymentInfo.amount
 
-        // 2. 백엔드 결제 승인 API 호출
+        // 3. 백엔드 결제 승인 API 호출
         await approvePayment({
           paymentKey: paymentInfo.paymentKey,
           orderId: paymentInfo.orderId,
           amount: paymentInfo.amount
         })
 
-        // 3. 성공 처리
+        // 4. 성공 처리
         isProcessing.value = false
         isSuccess.value = true
       } catch (error) {

@@ -5,8 +5,9 @@
 
 export const TOSS_PAYMENTS_CONFIG = {
   // 환경 변수에서 가져오기 (Vue CLI는 VUE_APP_ 접두사 필요)
-  // 없으면 기본값 사용 (테스트 키)
-  clientKey: process.env.VUE_APP_TOSS_CLIENT_KEY || 'test_ck_EP59LybZ8BwOzA0jmpgZ36GYo7pR',
+  // 없으면 기본값 사용 (결제위젯 연동 키 - test_gck_로 시작)
+  // 주의: API 개별 연동 키(test_ck_)는 사용할 수 없습니다
+  clientKey: process.env.VUE_APP_TOSS_CLIENT_KEY || 'test_gck_docs_Ovk5rk1EwkEbP0W43n07xlzm',
   
   // 성공/실패 URL
   successUrl: `${window.location.origin}/payment/success`,
@@ -33,4 +34,5 @@ export function getSuccessUrl() {
 export function getFailUrl() {
   return TOSS_PAYMENTS_CONFIG.failUrl
 }
+
 

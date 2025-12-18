@@ -50,10 +50,29 @@
               총 결제금액: <strong>{{ formatPrice(totalPrice) }}원</strong>
             </p>
           </div>
+          <!-- 토스페이먼츠 결제 위젯 컨테이너 -->
+          <div v-if="showPaymentWidget" class="payment-widget-container">
+            <div id="payment-widget"></div>
+            <div id="agreement"></div>
+          </div>
         </div>
         <div class="quantity-modal-actions">
           <button class="quantity-cancel-btn" @click="closeQuantityModal">취소</button>
-          <button class="quantity-confirm-btn" @click="confirmPayment">결제하기</button>
+          <button 
+            v-if="!showPaymentWidget"
+            class="quantity-confirm-btn" 
+            @click="openPaymentWidget"
+          >
+            결제수단 선택
+          </button>
+          <button 
+            v-else
+            class="quantity-confirm-btn" 
+            @click="confirmPayment"
+            :disabled="isProcessingPayment || !isWidgetRendered"
+          >
+            {{ isProcessingPayment ? '처리 중...' : (isWidgetRendered ? '결제하기' : '위젯 로딩 중...') }}
+          </button>
         </div>
       </div>
     </div>
@@ -215,12 +234,12 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, computed, onMounted, watch, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { formatPrice } from "@/utils/format";
 import { getPostDetail } from "@/services/productService";
 import { getOrCreateChatRoom } from "@/services/chatService";
-import { initializePaymentWidget, requestPayment } from "@/utils/tossPayments";
+import { initializePaymentWidget, renderPaymentWidget, requestPayment } from "@/utils/tossPayments";
 import { createOrder } from "@/services/orderService";
 import CommonModal from "@/components/modal/CommonModal.vue";
 import profileImg from "@/assets/profile.png";
@@ -240,6 +259,11 @@ export default {
     const showLoginModal = ref(false);
     const showQuantityModal = ref(false);
     const selectedQuantity = ref(1);
+    const showPaymentWidget = ref(false);
+    const isProcessingPayment = ref(false);
+    const paymentWidgetInstance = ref(null);
+    const currentOrderData = ref(null);
+    const isWidgetRendered = ref(false);
 
     const hasToken = () => !!localStorage.getItem("accessToken");
 
@@ -342,8 +366,8 @@ export default {
       if (navigator.share && post.value) {
         navigator
           .share({
-            title: post.value.title,
-            text: post.value.content,
+          title: post.value.title,
+          text: post.value.content,
             url: window.location.href,
           })
           .catch(() => {});
@@ -423,6 +447,10 @@ export default {
 
     const closeQuantityModal = () => {
       showQuantityModal.value = false;
+      showPaymentWidget.value = false;
+      paymentWidgetInstance.value = null;
+      currentOrderData.value = null;
+      isWidgetRendered.value = false;
     };
 
     const increaseQuantity = () => {
@@ -445,11 +473,10 @@ export default {
       }
     };
 
-    const confirmPayment = async () => {
-      closeQuantityModal();
-
+    const openPaymentWidget = async () => {
       try {
-        console.log('🔍 결제 시작, memberId:', localStorage.getItem("memberId"));
+        isProcessingPayment.value = true;
+        console.log('🔍 결제 위젯 열기 시작, memberId:', localStorage.getItem("memberId"));
 
         // 1. 주문 생성 API 호출
         const orderData = await createOrder({
@@ -458,6 +485,7 @@ export default {
         });
         // orderData = { orderId, orderName, amount }
         console.log('✅ 주문 생성 완료:', orderData);
+        currentOrderData.value = orderData;
 
         // 2. 사용자 정보 가져오기
         const memberId = localStorage.getItem("memberId");
@@ -466,25 +494,91 @@ export default {
           redirectToLogin();
           return;
         }
-        const user = JSON.parse(localStorage.getItem("user") || "{}");
 
         // 3. 토스페이먼츠 SDK 초기화
         const paymentWidget = await initializePaymentWidget(memberId);
+        paymentWidgetInstance.value = paymentWidget;
 
-        // 4. 결제 요청 (결제창 열기)
-        await requestPayment(paymentWidget, {
-          orderId: orderData.orderId,
-          orderName: orderData.orderName,
-          amount: orderData.amount,
-          customerEmail: user.email || "",  // 선택
-          customerName: user.name || user.nickname || "",  // 선택
+        // 4. 위젯 컨테이너를 먼저 표시 (DOM에 렌더링되도록)
+        showPaymentWidget.value = true;
+        
+        // 5. DOM이 완전히 렌더링될 때까지 대기
+        await nextTick();
+        await nextTick(); // 추가 대기 (Vue의 반응성 업데이트 완료 대기)
+        
+        // 6. 위젯 렌더링 (내부에서 충분한 대기 시간 포함)
+        await renderPaymentWidget(paymentWidget, '#payment-widget', orderData.amount);
+        
+        // 7. 위젯 렌더링 완료 플래그 설정
+        isWidgetRendered.value = true;
+
+        isProcessingPayment.value = false;
+        console.log('✅ 결제 위젯 준비 완료 - 이제 결제수단을 선택할 수 있습니다');
+      } catch (error) {
+        console.error("결제 위젯 열기 실패:", error);
+        isProcessingPayment.value = false;
+        
+        let errorMessage = error.message || "알 수 없는 오류";
+        
+        // 401 오류 또는 인증 관련 오류인 경우
+        if (errorMessage.includes('401') || errorMessage.includes('Unauthorized') || errorMessage.includes('클라이언트 키')) {
+          errorMessage = '토스페이먼츠 클라이언트 키가 유효하지 않습니다.\n\n환경 변수 VUE_APP_TOSS_CLIENT_KEY를 확인하거나, .env 파일에 올바른 키를 설정해주세요.\n\n현재 사용 중인 키: ' + (process.env.VUE_APP_TOSS_CLIENT_KEY ? '환경 변수에서 가져옴' : '기본 테스트 키');
+        }
+        
+        alert("결제 위젯을 불러오는 중 오류가 발생했습니다:\n\n" + errorMessage);
+      }
+    };
+
+    const confirmPayment = async () => {
+      if (!paymentWidgetInstance.value || !currentOrderData.value) {
+        alert("결제수단을 먼저 선택해주세요.");
+        return;
+      }
+
+      if (!isWidgetRendered.value) {
+        alert("결제 위젯이 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.");
+        return;
+      }
+
+      try {
+        isProcessingPayment.value = true;
+        console.log('💳 결제 요청 시작');
+
+        // 위젯이 완전히 렌더링되었는지 최종 확인
+        const widgetContainer = document.querySelector('#payment-widget');
+        if (!widgetContainer) {
+          throw new Error('결제 위젯 컨테이너를 찾을 수 없습니다.');
+        }
+        
+        // 위젯이 실제로 렌더링되었는지 확인
+        const hasContent = widgetContainer.children.length > 0 || 
+                          widgetContainer.innerHTML.trim().length > 50;
+        
+        if (!hasContent) {
+          throw new Error('결제 위젯이 아직 렌더링되지 않았습니다. 잠시 후 다시 시도해주세요.');
+        }
+        
+        // 추가 안전 대기 (위젯이 완전히 준비될 때까지)
+        console.log('⏳ 위젯 최종 준비 확인 중...')
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        const user = JSON.parse(localStorage.getItem("user") || "{}");
+
+        // 결제 요청
+        await requestPayment(paymentWidgetInstance.value, {
+          orderId: currentOrderData.value.orderId,
+          orderName: currentOrderData.value.orderName,
+          amount: currentOrderData.value.amount,
+          customerEmail: user.email || "",
+          customerName: user.name || user.nickname || "",
         });
 
         // 결제창이 열리면 사용자가 결제 진행
         // 결제 완료 후 successUrl로 리다이렉트됨
+        closeQuantityModal();
       } catch (error) {
         console.error("결제 요청 실패:", error);
-        // 백엔드 에러 응답: ErrorResponse { message, code }
+        isProcessingPayment.value = false;
         const errorMessage = error.response?.data?.message || error.message || "알 수 없는 오류";
         alert("결제 요청 중 오류가 발생했습니다: " + errorMessage);
       }
@@ -531,11 +625,15 @@ export default {
       showLoginModal,
       showQuantityModal,
       selectedQuantity,
+      showPaymentWidget,
+      isProcessingPayment,
+      isWidgetRendered,
       openQuantityModal,
       closeQuantityModal,
       increaseQuantity,
       decreaseQuantity,
       validateQuantity,
+      openPaymentWidget,
       confirmPayment,
       formatPrice,
       redirectToLogin,
@@ -1020,5 +1118,22 @@ export default {
 
 .quantity-confirm-btn:hover {
   opacity: 0.9;
+}
+
+.quantity-confirm-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.payment-widget-container {
+  margin-top: 24px;
+  padding: 16px;
+  background: #f9fafb;
+  border-radius: 12px;
+  min-height: 200px;
+}
+
+#payment-widget {
+  width: 100%;
 }
 </style>
