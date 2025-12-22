@@ -79,7 +79,8 @@ export default {
         await approvePayment({
           paymentKey: paymentInfo.paymentKey,
           orderId: paymentInfo.orderId,
-          amount: paymentInfo.amount
+          amount: paymentInfo.amount,
+          pgProvider: 'TOSS'  // 토스페이먼츠 사용
         })
 
         // 4. 성공 처리
